@@ -4,131 +4,134 @@ export interface Database {
     Tables: {
       users: {
         Row: {
-          id: string
-          email: string
-          name: string | null
-          image: string | null
-          created_at: string
-          updated_at: string
-        }
+          id: string;
+          email: string;
+          name: string | null;
+          image: string | null;
+          created_at: string;
+          updated_at: string;
+        };
         Insert: {
-          id?: string
-          email: string
-          name?: string | null
-          image?: string | null
-          created_at?: string
-          updated_at?: string
-        }
+          id?: string;
+          email: string;
+          name?: string | null;
+          image?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
         Update: {
-          id?: string
-          email?: string
-          name?: string | null
-          image?: string | null
-          updated_at?: string
-        }
-      }
+          id?: string;
+          email?: string;
+          name?: string | null;
+          image?: string | null;
+          updated_at?: string;
+        };
+      };
       practice_texts: {
         Row: {
-          id: string
-          content: string
-          difficulty: 'easy' | 'medium' | 'hard'
-          category: string
-          created_at: string
-        }
+          id: string;
+          content: string;
+          difficulty: "easy" | "medium" | "hard";
+          category: string;
+          created_at: string;
+        };
         Insert: {
-          id?: string
-          content: string
-          difficulty: 'easy' | 'medium' | 'hard'
-          category: string
-          created_at?: string
-        }
+          id?: string;
+          content: string;
+          difficulty: "easy" | "medium" | "hard";
+          category: string;
+          created_at?: string;
+        };
         Update: {
-          id?: string
-          content?: string
-          difficulty?: 'easy' | 'medium' | 'hard'
-          category?: string
-        }
-      }
+          id?: string;
+          content?: string;
+          difficulty?: "easy" | "medium" | "hard";
+          category?: string;
+        };
+      };
       session_results: {
         Row: {
-          id: string
-          user_id: string
-          wpm: number
-          accuracy: number
-          mistake_count: number
-          duration: number
-          text_id: string
-          created_at: string
-        }
+          id: string;
+          user_id: string;
+          wpm: number;
+          accuracy: number;
+          mistake_count: number;
+          duration: number;
+          text_id: string;
+          created_at: string;
+        };
         Insert: {
-          id?: string
-          user_id: string
-          wpm: number
-          accuracy: number
-          mistake_count: number
-          duration: number
-          text_id: string
-          created_at?: string
-        }
+          id?: string;
+          user_id: string;
+          wpm: number;
+          accuracy: number;
+          mistake_count: number;
+          duration: number;
+          text_id: string;
+          created_at?: string;
+        };
         Update: {
-          id?: string
-          user_id?: string
-          wpm?: number
-          accuracy?: number
-          mistake_count?: number
-          duration?: number
-          text_id?: string
-        }
-      }
-    }
-  }
+          id?: string;
+          user_id?: string;
+          wpm?: number;
+          accuracy?: number;
+          mistake_count?: number;
+          duration?: number;
+          text_id?: string;
+        };
+      };
+    };
+  };
 }
 
 // Application types
 export interface TypingSession {
-  id: string
-  text: string
-  startTime: Date
-  endTime?: Date
-  currentIndex: number
-  mistakes: number[]
-  wpm: number
-  accuracy: number
-  isActive: boolean
+  id: string;
+  text: string;
+  startTime: Date;
+  endTime?: Date;
+  currentIndex: number;
+  mistakes: number[];
+  wpm: number;
+  accuracy: number;
+  isActive: boolean;
 }
 
 export interface TypingStats {
-  wpm: number
-  accuracy: number
-  mistakeCount: number
-  duration: number
-  charactersTyped: number
-  correctCharacters: number
+  wpm: number;
+  accuracy: number;
+  mistakeCount: number;
+  duration: number;
+  charactersTyped: number;
+  correctCharacters: number;
 }
 
 export interface UserProfile {
-  id: string
-  email: string
-  name: string | null
-  image: string | null
-  createdAt: string
+  id: string;
+  email: string;
+  name: string | null;
+  image: string | null;
+  createdAt: string;
 }
 
 export interface SessionResult {
-  id: string
-  userId: string
-  wpm: number
-  accuracy: number
-  mistakeCount: number
-  duration: number
-  textId: string
-  createdAt: string
+  id: string;
+  userId: string;
+  wpm: number;
+  accuracy: number;
+  mistakeCount: number;
+  duration: number;
+  textId: string;
+  createdAt: string;
 }
 
 export interface PracticeText {
-  id: string
-  content: string
-  difficulty: 'easy' | 'medium' | 'hard'
-  category: string
-  createdAt: string
+  id: string;
+  content: string;
+  displayText?: string; // 表示用テキスト（日本語用）
+  inputText?: string; // 入力対象テキスト（日本語用）
+  language: "english" | "japanese";
+  difficulty: "easy" | "medium" | "hard";
+  category: string;
+  createdAt: string;
 }

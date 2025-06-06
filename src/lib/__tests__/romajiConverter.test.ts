@@ -487,4 +487,244 @@ describe('RomajiConverter', () => {
       expect(converter.convertToRomaji('っつ').romaji).toBe('ttsu')
     })
   })
+
+  describe('convertToRomajiMultiPattern', () => {
+    describe('複数パターン基本変換', () => {
+      test('単一パターン文字の変換', () => {
+        const result = converter.convertToRomajiMultiPattern('あ')
+        expect(result.success).toBe(true)
+        expect(result.patterns).toEqual(['a'])
+      })
+
+      test('複数パターン対応文字の変換 - か行', () => {
+        const result = converter.convertToRomajiMultiPattern('か')
+        expect(result.success).toBe(true)
+        expect(result.patterns).toEqual(['ka', 'ca'])
+      })
+
+      test('複数パターン対応文字の変換 - し', () => {
+        const result = converter.convertToRomajiMultiPattern('し')
+        expect(result.success).toBe(true)
+        expect(result.patterns).toEqual(['shi', 'si'])
+      })
+
+      test('複数パターン対応文字の変換 - ち', () => {
+        const result = converter.convertToRomajiMultiPattern('ち')
+        expect(result.success).toBe(true)
+        expect(result.patterns).toEqual(['chi', 'ti'])
+      })
+
+      test('複数パターン対応文字の変換 - つ', () => {
+        const result = converter.convertToRomajiMultiPattern('つ')
+        expect(result.success).toBe(true)
+        expect(result.patterns).toEqual(['tsu', 'tu'])
+      })
+
+      test('複数パターン対応文字の変換 - ふ', () => {
+        const result = converter.convertToRomajiMultiPattern('ふ')
+        expect(result.success).toBe(true)
+        expect(result.patterns).toEqual(['fu', 'hu'])
+      })
+
+      test('複数パターン対応文字の変換 - を', () => {
+        const result = converter.convertToRomajiMultiPattern('を')
+        expect(result.success).toBe(true)
+        expect(result.patterns).toEqual(['wo', 'o'])
+      })
+
+      test('複数パターン対応文字の変換 - ん', () => {
+        const result = converter.convertToRomajiMultiPattern('ん')
+        expect(result.success).toBe(true)
+        expect(result.patterns).toEqual(['n', 'nn'])
+      })
+    })
+
+    describe('複数パターン拗音変換', () => {
+      test('しゃ の複数パターン', () => {
+        const result = converter.convertToRomajiMultiPattern('しゃ')
+        expect(result.success).toBe(true)
+        expect(result.patterns).toEqual(['sha', 'sya'])
+      })
+
+      test('ちゃ の複数パターン', () => {
+        const result = converter.convertToRomajiMultiPattern('ちゃ')
+        expect(result.success).toBe(true)
+        expect(result.patterns).toEqual(['cha', 'tya'])
+      })
+
+      test('じゃ の複数パターン', () => {
+        const result = converter.convertToRomajiMultiPattern('じゃ')
+        expect(result.success).toBe(true)
+        expect(result.patterns).toEqual(['ja', 'jya', 'zya'])
+      })
+    })
+
+    describe('複数パターン組み合わせ変換', () => {
+      test('かちゃ の複数パターン', () => {
+        const result = converter.convertToRomajiMultiPattern('かちゃ')
+        expect(result.success).toBe(true)
+        // か(ka,ca) × ちゃ(cha,tya) = 4パターン
+        expect(result.patterns).toEqual(['kacha', 'katya', 'cacha', 'catya'])
+      })
+
+      test('しかし の複数パターン', () => {
+        const result = converter.convertToRomajiMultiPattern('しかし')
+        expect(result.success).toBe(true)
+        // し(shi,si) × か(ka,ca) × し(shi,si) = 8パターン
+        expect(result.patterns).toEqual([
+          'shikashi', 'shikasi', 'shicashi', 'shicasi',
+          'sikashi', 'sikasi', 'sicashi', 'sicasi'
+        ])
+      })
+    })
+
+    describe('複数パターン促音変換', () => {
+      test('っか の複数パターン（子音重複）', () => {
+        const result = converter.convertToRomajiMultiPattern('っか')
+        expect(result.success).toBe(true)
+        // っ → k（子音重複） + か(ka,ca) = kka, cca
+        expect(result.patterns).toEqual(['kka', 'cca'])
+      })
+
+      test('っち の複数パターン（子音重複）', () => {
+        const result = converter.convertToRomajiMultiPattern('っち')
+        expect(result.success).toBe(true)
+        // っ → t（子音重複） + ち(chi,ti) = tchi, tti
+        expect(result.patterns).toEqual(['tchi', 'tti'])
+      })
+
+      test('っちゃ の複数パターン（子音重複 + 拗音）', () => {
+        const result = converter.convertToRomajiMultiPattern('っちゃ')
+        expect(result.success).toBe(true)
+        // っ → t（子音重複） + ちゃ(cha,tya) = tcha, ttya
+        expect(result.patterns).toEqual(['tcha', 'ttya'])
+      })
+
+      test('促音単体の複数パターン', () => {
+        const result = converter.convertToRomajiMultiPattern('っ')
+        expect(result.success).toBe(true)
+        expect(result.patterns).toEqual(['ltu', 'xtu', 'ltsu'])
+      })
+    })
+
+    describe('空文字・エラーケース', () => {
+      test('空文字の変換', () => {
+        const result = converter.convertToRomajiMultiPattern('')
+        expect(result.success).toBe(true)
+        expect(result.patterns).toEqual([''])
+      })
+    })
+  })
+
+  describe('validateInputMultiPattern', () => {
+    describe('複数パターン入力検証', () => {
+      test('か の複数パターン検証 - 完全一致', () => {
+        const result1 = converter.validateInputMultiPattern('か', 'ka')
+        expect(result1.isValid).toBe(true)
+        expect(result1.matchingPatterns).toEqual(['ka'])
+        expect(result1.expectedNextChars).toEqual([''])
+
+        const result2 = converter.validateInputMultiPattern('か', 'ca')
+        expect(result2.isValid).toBe(true)
+        expect(result2.matchingPatterns).toEqual(['ca'])
+        expect(result2.expectedNextChars).toEqual([''])
+      })
+
+      test('か の複数パターン検証 - 部分一致', () => {
+        const result1 = converter.validateInputMultiPattern('か', 'k')
+        expect(result1.isValid).toBe(true)
+        expect(result1.matchingPatterns).toEqual(['ka'])
+        expect(result1.expectedNextChars).toEqual(['a'])
+
+        const result2 = converter.validateInputMultiPattern('か', 'c')
+        expect(result2.isValid).toBe(true)
+        expect(result2.matchingPatterns).toEqual(['ca'])
+        expect(result2.expectedNextChars).toEqual(['a'])
+      })
+
+      test('ちゃ の複数パターン検証', () => {
+        const result1 = converter.validateInputMultiPattern('ちゃ', 'c')
+        expect(result1.isValid).toBe(true)
+        expect(result1.matchingPatterns).toEqual(['cha'])
+        expect(result1.expectedNextChars).toEqual(['h'])
+
+        const result2 = converter.validateInputMultiPattern('ちゃ', 't')
+        expect(result2.isValid).toBe(true)
+        expect(result2.matchingPatterns).toEqual(['tya'])
+        expect(result2.expectedNextChars).toEqual(['y'])
+      })
+
+      test('しかし の複数パターン検証 - 段階的入力', () => {
+        // 最初の「し」
+        const result1 = converter.validateInputMultiPattern('しかし', 's')
+        expect(result1.isValid).toBe(true)
+        expect(result1.expectedNextChars).toContain('h')
+        expect(result1.expectedNextChars).toContain('i')
+
+        // 「shi」パターン継続
+        const result2 = converter.validateInputMultiPattern('しかし', 'sh')
+        expect(result2.isValid).toBe(true)
+        expect(result2.expectedNextChars).toEqual(['i'])
+
+        // 「si」パターン継続
+        const result3 = converter.validateInputMultiPattern('しかし', 'si')
+        expect(result3.isValid).toBe(true)
+        expect(result3.expectedNextChars).toContain('k')
+        expect(result3.expectedNextChars).toContain('c')
+      })
+
+      test('無効な入力の検証', () => {
+        const result = converter.validateInputMultiPattern('か', 'x')
+        expect(result.isValid).toBe(false)
+        expect(result.matchingPatterns).toEqual([])
+        expect(result.error).toBeDefined()
+      })
+
+      test('空文字の検証', () => {
+        const result = converter.validateInputMultiPattern('', '')
+        expect(result.isValid).toBe(true)
+        expect(result.matchingPatterns).toEqual([''])
+        expect(result.expectedNextChars).toEqual([''])
+      })
+    })
+
+    describe('文脈依存入力状態管理', () => {
+      test('ちゃっと での文脈依存処理', () => {
+        // 「t」入力時 → tya（tyatto）のみマッチ
+        const result1 = converter.validateInputMultiPattern('ちゃっと', 't')
+        expect(result1.isValid).toBe(true)
+        const tyaPatterns = result1.matchingPatterns.filter(p => p.startsWith('tya'))
+        expect(tyaPatterns.length).toBeGreaterThan(0)
+
+        // 「c」入力時 → cha（chatto）のみマッチ  
+        const result2 = converter.validateInputMultiPattern('ちゃっと', 'c')
+        expect(result2.isValid).toBe(true)
+        const chaPatterns = result2.matchingPatterns.filter(p => p.startsWith('cha'))
+        expect(chaPatterns.length).toBeGreaterThan(0)
+      })
+    })
+  })
+
+  describe('getMultiPatternCharacters', () => {
+    test('複数パターン文字一覧の取得', () => {
+      const patterns = converter.getMultiPatternCharacters()
+      
+      // 基本的な複数パターン文字の確認
+      expect(patterns['か']).toEqual(['ka', 'ca'])
+      expect(patterns['し']).toEqual(['shi', 'si'])
+      expect(patterns['ち']).toEqual(['chi', 'ti'])
+      expect(patterns['つ']).toEqual(['tsu', 'tu'])
+      expect(patterns['ふ']).toEqual(['fu', 'hu'])
+      expect(patterns['を']).toEqual(['wo', 'o'])
+      expect(patterns['ん']).toEqual(['n', 'nn'])
+      
+      // 拗音の複数パターン確認
+      expect(patterns['しゃ']).toEqual(['sha', 'sya'])
+      expect(patterns['ちゃ']).toEqual(['cha', 'tya'])
+      expect(patterns['じゃ']).toEqual(['ja', 'jya', 'zya'])
+      
+      // 促音の複数パターン確認
+      expect(patterns['っ']).toEqual(['ltu', 'xtu', 'ltsu'])
+    })
+  })
 })

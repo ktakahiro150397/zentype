@@ -3,6 +3,38 @@
  * ひらがなからローマ字への変換を行う
  */
 
+// 拗音（2文字組み合わせ）のマッピングテーブル - 優先的にチェック
+const YOON_MAP: Record<string, string> = {
+  // か行の拗音
+  'きゃ': 'kya', 'きゅ': 'kyu', 'きょ': 'kyo',
+  'ぎゃ': 'gya', 'ぎゅ': 'gyu', 'ぎょ': 'gyo',
+  
+  // さ行の拗音
+  'しゃ': 'sha', 'しゅ': 'shu', 'しょ': 'sho',
+  'じゃ': 'ja', 'じゅ': 'ju', 'じょ': 'jo',
+  
+  // た行の拗音
+  'ちゃ': 'cha', 'ちゅ': 'chu', 'ちょ': 'cho',
+  'ぢゃ': 'dya', 'ぢゅ': 'dyu', 'ぢょ': 'dyo',
+  
+  // な行の拗音
+  'にゃ': 'nya', 'にゅ': 'nyu', 'にょ': 'nyo',
+  
+  // は行の拗音
+  'ひゃ': 'hya', 'ひゅ': 'hyu', 'ひょ': 'hyo',
+  'びゃ': 'bya', 'びゅ': 'byu', 'びょ': 'byo',
+  'ぴゃ': 'pya', 'ぴゅ': 'pyu', 'ぴょ': 'pyo',
+  
+  // ま行の拗音
+  'みゃ': 'mya', 'みゅ': 'myu', 'みょ': 'myo',
+  
+  // ら行の拗音
+  'りゃ': 'rya', 'りゅ': 'ryu', 'りょ': 'ryo',
+  
+  // 特殊な拗音
+  'ふゃ': 'fya', 'ふゅ': 'fyu', 'ふょ': 'fyo',
+}
+
 // 基本的なひらがな→ローマ字変換テーブル
 const HIRAGANA_TO_ROMAJI_MAP: Record<string, string> = {
   // あ行
@@ -39,7 +71,8 @@ const HIRAGANA_TO_ROMAJI_MAP: Record<string, string> = {
   
   // わ行
   'わ': 'wa', 'ゐ': 'wi', 'ゑ': 'we', 'を': 'wo', 'ん': 'n',
-    // 小文字
+  
+  // 小文字
   'ゃ': 'ya', 'ゅ': 'yu', 'ょ': 'yo',
   'ぁ': 'a', 'ぃ': 'i', 'ぅ': 'u', 'ぇ': 'e', 'ぉ': 'o',
   
@@ -80,8 +113,7 @@ export class RomajiConverter {
     try {
       let result = ''
       let i = 0
-      
-      while (i < hiragana.length) {
+        while (i < hiragana.length) {
         const char = hiragana[i]
         
         // 促音（っ）の処理
@@ -98,6 +130,16 @@ export class RomajiConverter {
           }
           i++
           continue
+        }
+        
+        // 拗音（2文字組み合わせ）の処理を優先
+        if (i + 1 < hiragana.length) {
+          const twoChar = hiragana.substring(i, i + 2)
+          if (YOON_MAP[twoChar]) {
+            result += YOON_MAP[twoChar]
+            i += 2 // 2文字分進める
+            continue
+          }
         }
         
         // 通常の文字変換

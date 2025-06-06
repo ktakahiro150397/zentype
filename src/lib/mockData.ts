@@ -100,6 +100,46 @@ export const mockPracticeTexts = [
     category: "programming",
     createdAt: new Date().toISOString(),
   },
+  {
+    id: "jp6",
+    content: "", // Not used for Japanese
+    displayText: "今日はとても良い天気ですね。",
+    inputText: "きょうはとてもよいてんきですね。",
+    language: "japanese" as const,
+    difficulty: "medium" as const,
+    category: "general",
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: "jp7",
+    content: "", // Not used for Japanese
+    displayText: "写真を撮るのが趣味です。",
+    inputText: "しゃしんをとるのがしゅみです。",
+    language: "japanese" as const,
+    difficulty: "medium" as const,
+    category: "general",
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: "jp8",
+    content: "", // Not used for Japanese
+    displayText: "プログラミングは論理的思考を養います。",
+    inputText: "ぷろぐらみんぐはろんりてきしこうをやしないます。",
+    language: "japanese" as const,
+    difficulty: "hard" as const,
+    category: "programming",
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: "jp9",
+    content: "", // Not used for Japanese
+    displayText: "デザインパターンは再利用可能なソフトウェアの設計です。",
+    inputText: "でざいんぱたーんはさいりようかのあるそふとうぇあのせっけいです。",
+    language: "japanese" as const,
+    difficulty: "hard" as const,
+    category: "programming",
+    createdAt: new Date().toISOString(),
+  },
 ];
 
 // Local storage keys

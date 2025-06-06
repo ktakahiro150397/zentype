@@ -118,3 +118,39 @@ practice_texts (
 1. **段階的アプローチ**: 基本機能→特殊ケース→高度な機能
 2. **プラグイン設計**: 新しい変換ルールの後付け追加
 3. **テスト駆動**: 各段階での十分な検証
+
+### 重要な設計パターン（日本語入力システム拡張）
+
+#### 4. ローマ字変換システム（最新：拗音対応）
+```typescript
+// 拗音対応の2段階マッピング構造
+interface RomajiConverter {
+  // 優先度1: 拗音（2文字組み合わせ）
+  YOON_MAP: Record<string, string> // 'きゃ' → 'kya'
+  
+  // 優先度2: 基本ひらがな（1文字）
+  HIRAGANA_TO_ROMAJI_MAP: Record<string, string> // 'き' → 'ki'
+  
+  // 変換ロジック: 2文字優先→1文字フォールバック
+  convertToRomaji(hiragana: string): RomajiConversionResult
+  validateInput(hiragana: string, input: string): ValidationResult
+}
+
+// 拗音対応変換例
+// ❌ 従来: 'きゃ' → 'ki' + 'ya' (2回入力必要)
+// ✅ 改善: 'きゃ' → 'kya' (1回で正しく変換)
+```
+
+#### 5. 多言語対応パターン
+```typescript
+interface PracticeText {
+  language: 'english' | 'japanese'
+  
+  // 英語の場合
+  content: string  // 表示・入力共に使用
+  
+  // 日本語の場合  
+  displayText: string  // ひらがな表示用
+  inputText: string    // ローマ字変換用
+}
+```

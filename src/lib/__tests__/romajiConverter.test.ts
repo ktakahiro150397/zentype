@@ -142,6 +142,140 @@ describe('RomajiConverter', () => {
       })
     })
 
+    describe('拗音（ゃゅょ）の処理', () => {
+      test('か行の拗音変換', () => {
+        expect(converter.convertToRomaji('きゃ')).toEqual({
+          romaji: 'kya',
+          success: true
+        })
+        expect(converter.convertToRomaji('きゅ')).toEqual({
+          romaji: 'kyu',
+          success: true
+        })
+        expect(converter.convertToRomaji('きょ')).toEqual({
+          romaji: 'kyo',
+          success: true
+        })
+        expect(converter.convertToRomaji('ぎゃぎゅぎょ')).toEqual({
+          romaji: 'gyagyugyo',
+          success: true
+        })
+      })
+
+      test('さ行の拗音変換', () => {
+        expect(converter.convertToRomaji('しゃ')).toEqual({
+          romaji: 'sha',
+          success: true
+        })
+        expect(converter.convertToRomaji('しゅ')).toEqual({
+          romaji: 'shu',
+          success: true
+        })
+        expect(converter.convertToRomaji('しょ')).toEqual({
+          romaji: 'sho',
+          success: true
+        })
+        expect(converter.convertToRomaji('じゃじゅじょ')).toEqual({
+          romaji: 'jajujo',
+          success: true
+        })
+      })
+
+      test('た行の拗音変換', () => {
+        expect(converter.convertToRomaji('ちゃ')).toEqual({
+          romaji: 'cha',
+          success: true
+        })
+        expect(converter.convertToRomaji('ちゅ')).toEqual({
+          romaji: 'chu',
+          success: true
+        })
+        expect(converter.convertToRomaji('ちょ')).toEqual({
+          romaji: 'cho',
+          success: true
+        })
+      })
+
+      test('な行の拗音変換', () => {
+        expect(converter.convertToRomaji('にゃ')).toEqual({
+          romaji: 'nya',
+          success: true
+        })
+        expect(converter.convertToRomaji('にゅ')).toEqual({
+          romaji: 'nyu',
+          success: true
+        })
+        expect(converter.convertToRomaji('にょ')).toEqual({
+          romaji: 'nyo',
+          success: true
+        })
+      })
+
+      test('は行の拗音変換', () => {
+        expect(converter.convertToRomaji('ひゃ')).toEqual({
+          romaji: 'hya',
+          success: true
+        })
+        expect(converter.convertToRomaji('びゃ')).toEqual({
+          romaji: 'bya',
+          success: true
+        })
+        expect(converter.convertToRomaji('ぴゃ')).toEqual({
+          romaji: 'pya',
+          success: true
+        })
+      })
+
+      test('ま行とら行の拗音変換', () => {
+        expect(converter.convertToRomaji('みゃ')).toEqual({
+          romaji: 'mya',
+          success: true
+        })
+        expect(converter.convertToRomaji('りゃ')).toEqual({
+          romaji: 'rya',
+          success: true
+        })
+        expect(converter.convertToRomaji('りゅ')).toEqual({
+          romaji: 'ryu',
+          success: true
+        })
+        expect(converter.convertToRomaji('りょ')).toEqual({
+          romaji: 'ryo',
+          success: true
+        })
+      })
+
+      test('複合的な拗音を含む文章', () => {
+        expect(converter.convertToRomaji('きょう')).toEqual({
+          romaji: 'kyou',
+          success: true
+        })
+        expect(converter.convertToRomaji('しゃしん')).toEqual({
+          romaji: 'shashin',
+          success: true
+        })
+        expect(converter.convertToRomaji('びょういん')).toEqual({
+          romaji: 'byouin',
+          success: true
+        })
+        expect(converter.convertToRomaji('ちゅうがっこう')).toEqual({
+          romaji: 'chuugakkou',
+          success: true
+        })
+      })
+
+      test('拗音と促音の組み合わせ', () => {
+        expect(converter.convertToRomaji('っきゃ')).toEqual({
+          romaji: 'kkya',
+          success: true
+        })
+        expect(converter.convertToRomaji('っちゃ')).toEqual({
+          romaji: 'tcha',
+          success: true
+        })
+      })
+    })
+
     describe('複雑な文字列の変換', () => {
       test('日常的な単語', () => {
         expect(converter.convertToRomaji('こんにちは')).toEqual({
@@ -257,6 +391,77 @@ describe('RomajiConverter', () => {
       test('空文字に対する入力', () => {
         const result = converter.validateInput('', 'a')
         expect(result.isValid).toBe(false)
+      })
+    })
+
+    describe('拗音の入力検証', () => {
+      test('拗音の完全一致', () => {
+        expect(converter.validateInput('きゃ', 'kya')).toEqual({
+          isValid: true,
+          expectedNext: ''
+        })
+        expect(converter.validateInput('しゅ', 'shu')).toEqual({
+          isValid: true,
+          expectedNext: ''
+        })
+        expect(converter.validateInput('ちょ', 'cho')).toEqual({
+          isValid: true,
+          expectedNext: ''
+        })
+      })
+
+      test('拗音の前方一致（入力途中）', () => {
+        // 「きゃ」を入力中
+        expect(converter.validateInput('きゃ', 'k')).toEqual({
+          isValid: true,
+          expectedNext: 'y'
+        })
+        expect(converter.validateInput('きゃ', 'ky')).toEqual({
+          isValid: true,
+          expectedNext: 'a'
+        })
+        
+        // 「しゃ」を入力中
+        expect(converter.validateInput('しゃ', 's')).toEqual({
+          isValid: true,
+          expectedNext: 'h'
+        })
+        expect(converter.validateInput('しゃ', 'sh')).toEqual({
+          isValid: true,
+          expectedNext: 'a'
+        })
+      })
+
+      test('拗音の間違った入力', () => {
+        // 「きゃ」を「kiya」として入力しようとした場合
+        const result = converter.validateInput('きゃ', 'ki')
+        expect(result.isValid).toBe(false)
+        
+        // 「しゃ」を「siya」として入力しようとした場合
+        const result2 = converter.validateInput('しゃ', 'si')
+        expect(result2.isValid).toBe(false)
+      })
+
+      test('複合的な拗音を含む文章の検証', () => {
+        // 「きょう」の入力検証
+        expect(converter.validateInput('きょう', 'kyo')).toEqual({
+          isValid: true,
+          expectedNext: 'u'
+        })
+        expect(converter.validateInput('きょう', 'kyou')).toEqual({
+          isValid: true,
+          expectedNext: ''
+        })
+        
+        // 「しゃしん」の入力検証
+        expect(converter.validateInput('しゃしん', 'shas')).toEqual({
+          isValid: true,
+          expectedNext: 'h'
+        })
+        expect(converter.validateInput('しゃしん', 'shashin')).toEqual({
+          isValid: true,
+          expectedNext: ''
+        })
       })
     })
   })

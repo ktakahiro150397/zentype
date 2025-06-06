@@ -5,6 +5,7 @@ import { useTypingStats } from "@/hooks/useTypingStats";
 import { dataService } from "@/lib/dataService";
 import { useMockAuth } from "@/components/MockAuthProvider";
 import { RomajiConverter } from "@/lib/romajiConverter";
+import { getYoonPatterns } from "@/lib/mappings/kanaPatterns";
 
 interface TypingPracticeProps {
   text: string;
@@ -310,16 +311,10 @@ export function TypingPractice({
       // Check for 2-character yoon first
       if (i + 1 < text.length) {
         const twoChar = text.substring(i, i + 2);
-        // Check if it's a valid yoon combination
-        const yoonPattern = ['きゃ', 'きゅ', 'きょ', 'ぎゃ', 'ぎゅ', 'ぎょ',
-                           'しゃ', 'しゅ', 'しょ', 'じゃ', 'じゅ', 'じょ',
-                           'ちゃ', 'ちゅ', 'ちょ', 'ぢゃ', 'ぢゅ', 'ぢょ',
-                           'にゃ', 'にゅ', 'にょ', 'ひゃ', 'ひゅ', 'ひょ',
-                           'びゃ', 'びゅ', 'びょ', 'ぴゃ', 'ぴゅ', 'ぴょ',
-                           'みゃ', 'みゅ', 'みょ', 'りゃ', 'りゅ', 'りょ',
-                           'ふゃ', 'ふゅ', 'ふょ'];
+        // Check if it's a valid yoon combination using shared mapping
+        const yoonPatterns = getYoonPatterns();
         
-        if (yoonPattern.includes(twoChar)) {
+        if (yoonPatterns.includes(twoChar)) {
           result.push({ char: twoChar, originalIndex });
           i += 2;
           originalIndex++;

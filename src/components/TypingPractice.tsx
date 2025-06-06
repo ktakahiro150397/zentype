@@ -49,7 +49,12 @@ export function TypingPractice({
   const [isFocused, setIsFocused] = useState(false);
   const [isWaitingForCorrectKey, setIsWaitingForCorrectKey] = useState(false);
   const [romajiProgress, setRomajiProgress] = useState<{
-    [key: number]: { completed: string; remaining: string; hasError: boolean };
+    [key: number]: { 
+      completed: string; 
+      remaining: string; 
+      hasError: boolean;
+      actualPattern?: string; // 実際に入力されたパターンを記録
+    };
   }>({});
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -128,18 +133,19 @@ export function TypingPractice({
         // 日本語モード: ローマ字入力処理
         const newInput = currentInput + e.key;
 
-        // 現在の文字のローマ字変換結果を取得
-        const currentChar = practiceText[currentIndex];
-        if (!currentChar) return; // 範囲外の場合は無視
+        // パースされた文字グループを取得
+        const parsedChars = parseHiraganaText(practiceText);
+        const currentCharGroup = parsedChars[currentIndex];
+        if (!currentCharGroup) return; // 範囲外の場合は無視
 
+        const currentChar = currentCharGroup.char;
         const conversion = romajiConverter.convertToRomaji(currentChar);
         const expectedRomaji = conversion.romaji;
 
-        // 入力検証
-        const validation = romajiConverter.validateInput(
+        // 入力検証 - 複数パターン対応
+        const validation = romajiConverter.validateInputMultiPattern(
           currentChar,
-          newInput,
-          0
+          newInput
         );
 
         // ローマ字進捗を更新
@@ -159,13 +165,28 @@ export function TypingPractice({
         if (validation.isValid) {
           setIsWaitingForCorrectKey(false);
 
-          if (newInput === targetRomaji) {
+          // 完了チェック - いずれかのパターンで完全一致
+          const isComplete = validation.matchingPatterns.some(pattern => pattern === newInput);
+          
+          if (isComplete) {
+            // 実際に入力されたパターンを記録
+            setRomajiProgress((prev) => ({
+              ...prev,
+              [currentIndex]: {
+                completed: newInput,
+                remaining: "",
+                hasError: false,
+                actualPattern: newInput, // 実際に入力されたパターンを保存
+              },
+            }));
+
             // 現在の文字完成、次の文字へ
             setCurrentIndex((prev) => prev + 1);
             setCurrentInput("");
 
-            // 全体完了チェック
-            if (currentIndex + 1 >= practiceText.length) {
+            // 全体完了チェック - パースされた文字グループの数を使用
+            const parsedChars = parseHiraganaText(practiceText);
+            if (currentIndex + 1 >= parsedChars.length) {
               setIsCompleted(true);
               setIsActive(false);
               saveResult();
@@ -279,9 +300,47 @@ export function TypingPractice({
     );
   };
 
+  // Parse hiragana text with yoon priority
+  const parseHiraganaText = (text: string) => {
+    const result: { char: string; originalIndex: number }[] = [];
+    let i = 0;
+    let originalIndex = 0;
+
+    while (i < text.length) {
+      // Check for 2-character yoon first
+      if (i + 1 < text.length) {
+        const twoChar = text.substring(i, i + 2);
+        // Check if it's a valid yoon combination
+        const yoonPattern = ['きゃ', 'きゅ', 'きょ', 'ぎゃ', 'ぎゅ', 'ぎょ',
+                           'しゃ', 'しゅ', 'しょ', 'じゃ', 'じゅ', 'じょ',
+                           'ちゃ', 'ちゅ', 'ちょ', 'ぢゃ', 'ぢゅ', 'ぢょ',
+                           'にゃ', 'にゅ', 'にょ', 'ひゃ', 'ひゅ', 'ひょ',
+                           'びゃ', 'びゅ', 'びょ', 'ぴゃ', 'ぴゅ', 'ぴょ',
+                           'みゃ', 'みゅ', 'みょ', 'りゃ', 'りゅ', 'りょ',
+                           'ふゃ', 'ふゅ', 'ふょ'];
+        
+        if (yoonPattern.includes(twoChar)) {
+          result.push({ char: twoChar, originalIndex });
+          i += 2;
+          originalIndex++;
+          continue;
+        }
+      }
+      
+      // Single character
+      result.push({ char: text[i], originalIndex });
+      i++;
+      originalIndex++;
+    }
+    
+    return result;
+  };
+
   // Render Romaji with highlighting for Japanese mode
   const renderRomajiDisplay = () => {
     if (language !== "japanese" || !romajiConverter) return null;
+
+    const parsedChars = parseHiraganaText(practiceText);
 
     return (
       <div className="text-lg md:text-xl leading-normal font-mono break-all">
@@ -289,8 +348,12 @@ export function TypingPractice({
           入力対象（ローマ字）:
         </div>
         <div className="text-left leading-normal">
-          {practiceText.split("").map((char, index) => {
-            const targetRomaji = romajiConverter.convertToRomaji(char).romaji;
+          {parsedChars.map(({ char, originalIndex }, index) => {
+            // 複数パターン対応 - 最初のパターンを表示用として使用
+            const conversionResult = romajiConverter.convertToRomajiMultiPattern(char);
+            const targetRomaji = conversionResult.success && conversionResult.patterns.length > 0 
+              ? conversionResult.patterns[0] 
+              : romajiConverter.convertToRomaji(char).romaji;
 
             let containerClassName = "inline px-1 py-0.5 rounded";
             let completedText = "";
@@ -298,9 +361,10 @@ export function TypingPractice({
             let hasError = false;
 
             if (index < currentIndex) {
-              // 完了済み文字
+              // 完了済み文字 - 実際に入力されたパターンを表示
               containerClassName += " bg-green-100 text-green-800";
-              completedText = targetRomaji;
+              const progress = romajiProgress[index];
+              completedText = progress?.actualPattern || targetRomaji;
               remainingText = "";
             } else if (index === currentIndex) {
               // 現在入力中の文字
@@ -310,14 +374,24 @@ export function TypingPractice({
                 remainingText = progress.remaining;
                 hasError = progress.hasError;
               } else {
-                // 入力進捗を計算
-                const validation = romajiConverter.validateInput(
+                // 入力進捗を計算 - 複数パターン対応
+                const validation = romajiConverter.validateInputMultiPattern(
                   char,
-                  currentInput,
-                  0
+                  currentInput
                 );
                 completedText = currentInput;
-                remainingText = targetRomaji.slice(currentInput.length);
+                
+                // 現在入力中のパターンに基づいて残りテキストを計算
+                if (validation.isValid && validation.matchingPatterns.length > 0) {
+                  // 最も短いマッチングパターンを基準にする（より進捗が見える）
+                  const shortestPattern = validation.matchingPatterns.reduce((shortest, current) => 
+                    current.length < shortest.length ? current : shortest
+                  );
+                  remainingText = shortestPattern.slice(currentInput.length);
+                } else {
+                  remainingText = targetRomaji.slice(currentInput.length);
+                }
+                
                 hasError = !validation.isValid && currentInput.length > 0;
               }
 
@@ -437,19 +511,24 @@ export function TypingPractice({
                 romajiConverter &&
                 practiceText[currentIndex]
                   ? (() => {
-                      const currentChar = practiceText[currentIndex];
+                      const parsedChars = parseHiraganaText(practiceText);
+                      const currentCharGroup = parsedChars[currentIndex];
+                      if (!currentCharGroup) return "?";
+                      
+                      const currentChar = currentCharGroup.char;
+                      const validation = romajiConverter.validateInputMultiPattern(
+                        currentChar,
+                        currentInput
+                      );
+                      
+                      // 複数の期待される次の文字がある場合
+                      if (validation.expectedNextChars && validation.expectedNextChars.length > 0) {
+                        return validation.expectedNextChars.join(" or ");
+                      }
+                      
                       const targetRomaji =
                         romajiConverter.convertToRomaji(currentChar).romaji;
-                      const validation = romajiConverter.validateInput(
-                        currentChar,
-                        currentInput + "dummy",
-                        0
-                      );
-                      return (
-                        validation.expectedNext ||
-                        targetRomaji[currentInput.length] ||
-                        "?"
-                      );
+                      return targetRomaji[currentInput.length] || "?";
                     })()
                   : practiceText[currentIndex]}
               </kbd>

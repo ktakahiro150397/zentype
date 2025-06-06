@@ -134,7 +134,7 @@ export const mockPracticeTexts = [
     id: "jp9",
     content: "", // Not used for Japanese
     displayText: "デザインパターンは再利用可能なソフトウェアの設計です。",
-    inputText: "でざいんぱたーんはさいりようかのあるそふとうぇあのせっけいです。",
+    inputText: "でざいんぱたーんはさいりようかのうなそふとうぇあのせっけいです。",
     language: "japanese" as const,
     difficulty: "hard" as const,
     category: "programming",
